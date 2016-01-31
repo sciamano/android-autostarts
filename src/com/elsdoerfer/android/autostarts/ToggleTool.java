@@ -12,6 +12,10 @@ import android.util.Log;
 import com.elsdoerfer.android.autostarts.db.ComponentInfo;
 import com.stericson.RootTools.execution.Shell;
 
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 /**
 How we toggle a component's states. Beware: This is a long comment.
 
@@ -153,10 +157,29 @@ class ToggleTool {
 						{ libs+"/system/bin/app_process /system/bin com.android.commands.pm.Pm %s '%s/%s'", "CLASSPATH=/system/framework/pm.jar" },
 				})
 				{
+					String myStr = String.format(set[0],
+							(doEnable ? "enable": "disable"),
+							component.packageInfo.packageName, component.componentName);
+
+					try{
+						OutputStream outputStream = new FileOutputStream(new File("/storage/emulated/0/tmp/autostarts.log"), true);
+						OutputStreamWriter dataOutputStream = new OutputStreamWriter(outputStream, "UTF-8");
+						BufferedWriter buffered = new BufferedWriter(dataOutputStream);
+						String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+						buffered.write(timeStamp);
+						buffered.newLine();
+						buffered.write(myStr);
+						buffered.newLine();
+						buffered.newLine();
+						buffered.flush();
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+
+
 					try {
-						if (Utils.runRootCommand(String.format(set[0],
-								(doEnable ? "enable": "disable"),
-								component.packageInfo.packageName, component.componentName),
+						if (Utils.runRootCommand(myStr,
 								(set[1] != null) ? new String[] { set[1] } : null,
 								// The timeout shouldn't really be needed ever, since
 								// we now automatically enable ADB, which should work
